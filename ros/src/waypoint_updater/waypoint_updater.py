@@ -39,6 +39,12 @@ class WaypointUpdater(object):
 
         # TODO: Add other member variables you need below
 
+        #initializing all variable to enable first conditional excution
+        self.Pose = None
+        self.base_waypoints = None
+        self.waypoints_2d = None
+
+
         self.loop()
 
     def loop(self):
@@ -49,6 +55,7 @@ class WaypointUpdater(object):
                 closest_waypoints_idx=self.get_closest_waypoints_idx()
                 self.publish_waypoints(closest_waypoints_idx)
             rate.sleep()
+
     def get_closest_waypointsidx(self):
         x=self.pose.pose.position.x
         y=self.pose.pose.position.y
@@ -78,7 +85,7 @@ class WaypointUpdater(object):
 
     def pose_cb(self, msg):
         self.pose=msg
-         pass
+        pass
 
     def waypoints_cb(self, waypoints):
 
@@ -116,3 +123,6 @@ if __name__ == '__main__':
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')
+
+
+
