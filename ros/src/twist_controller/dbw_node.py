@@ -53,6 +53,17 @@ class DBWNode(object):
         self.brake_pub = rospy.Publisher('/vehicle/brake_cmd',
                                          BrakeCmd, queue_size=1)
 
+        #initialized for future conditional execution
+        self.current_vel = None
+        self.dbw_enabled = None
+        self.linear_vel = None
+        self.angular_vel = None
+
+        # initialization ( only used at the first loop then uses the output of function "controller.control")
+        self.steering=0
+        self.throttle=0
+        self.brake=0
+
         # TODO: Create `Controller` object
         # self.controller = Controller(<Arguments you wish to provide>)
 
@@ -61,18 +72,20 @@ class DBWNode(object):
         self.loop()
 
     def loop(self):
-        rate = rospy.Rate(50) # 50Hz
+        rate = rospy.Rate(50) # 50Hz : optimal frequency for DBW ( less that 20Hz will cancel DWB mode and return to manual mode) 
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
             # You should only publish the control commands if dbw is enabled
-            # throttle, brake, steering = self.controller.control(<proposed linear velocity>,
-            #                                                     <proposed angular velocity>,
-            #                                                     <current linear velocity>,
-            #                                                     <dbw status>,
-            #                                                     <any other argument you need>)
-            # if <dbw is enabled>:
-            #   self.publish(throttle, brake, steer)
-            rate.sleep()
+            if not None in (self.current_vel, self.linear_vel , self.angular_vel):
+                throttle, brake, steering = self.controller.control(self.current.vel,self.dbw.ennabled, self.linear_vel, self.angular_vel) 
+                #current_vek: vehicle CURRENT velocity
+                #linear_vel, angular_vel : vehicle TARGETED velocities 
+
+                                                                
+            if <dbw is enabled>: # goes back to manual driving otherwise
+                self.publish(throttle, brake, steer)
+
+            rate.sleep() #(loops at 50Hz )
 
     def publish(self, throttle, brake, steer):
         tcmd = ThrottleCmd()
