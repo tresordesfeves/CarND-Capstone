@@ -46,26 +46,26 @@ class Controller(object):
         	self.throttle_controller.reset() # disconnect the throttle PID controller and reset to zero the accumulated (intgral) error
         	return 0,0,0 # switch back to manual driving
 
-        current_vel=self.vel_lpf(current_velocity) # HF noise clean uo
+        current_vel=self.vel_lpf(current_velocity) # HF noise clean up
 
-       	steering = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_vel)
+		steering = self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_vel) 
 
        	
        	# getting all the parameters ready for the throttle PID controller
        	vel_error= linear_velocity - current_vel
        	self.last_vel= current_vel
        	current_time = rospy.get_time()
-       	sample_time=current_time - self.last_time
-       	self.last_time= current_time
+       	sample_time = current_time - self.last_time
+       	self.last_time = current_time
 
-       	throttle=self.throttle_controller.step(vel_error,sample_time) # get the throttlr vallue from the PID throttle controller
+       	throttle=self.throttle_controller.step(vel_error,sample_time) # get the throttle value from the PID throttle controller
        	brake=0
 
-       	if linear_velocity==0 and current_velocity :#idling at a stop sign or at a red light: automatic transmission , brake to immobilized vehicle
+       	if linear_velocity==0 and current_velocity <0.1 :#idling at a stop sign or at a red light: automatic transmission , brake to immobilized vehicle
        		throttle=0
        		brake= 400 # immobilization torque 
        	
-       	elif throttle<0.1 and vel_error<0: # no throttle anymore and vehicle going faster than intemded : it's time to push on the break 
+       	elif throttle<0.1 and vel_error<0: # not "throttling" anymore and vehicle going faster than intended : it's time to push on the break 
 
        		throttle = 0 # zero out residual throttle
 
