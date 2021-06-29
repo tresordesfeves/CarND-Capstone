@@ -55,7 +55,8 @@ class Controller(object):
 
         current_velocity=self.vel_lpf.filt(current_vel) # HF noise clean up
 
-		steering=self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
+
+        steering=self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
 
        	# getting all the parameters ready for the throttle PID controller
        	vel_error= linear_velocity - current_velocity
@@ -79,6 +80,7 @@ class Controller(object):
        		brake = decel* self.vehicle_mass* self.wheel_radius # torque formula 
 
        	return throttle,steering ,brake
+
 
 
 
