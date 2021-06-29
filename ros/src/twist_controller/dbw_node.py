@@ -65,6 +65,9 @@ class DBWNode(object):
                                     steer_ratio=steer_ratio,
                                     max_lat_accel=max_lat_accel,
                                     max_steer_angle=max_steer_angle)
+    
+
+
 
         #  Subscribe to all the topics needed
 
@@ -90,13 +93,12 @@ class DBWNode(object):
         rate = rospy.Rate(50) # 50Hz : optimal frequency for DBW ( less that 20Hz will cancel DWB mode and return to manual mode) 
         while not rospy.is_shutdown():
             # TODO: Get predicted throttle, brake, and steering using `twist_controller`
-            # You should only publish the control commands if dbw is enabled
             if not None in (self.current_vel, self.linear_vel , self.angular_vel):
-                throttle, brake, steering = self.controller.control(self.current.vel,self.dbw_enabled, self.linear_vel, self.angular_vel) 
-                #current_vek: vehicle CURRENT velocity
+                throttle, brake, steering = self.controller.control(self.current_vel,self.dbw_enabled, self.linear_vel, self.angular_vel) 
+                #current_vel: vehicle CURRENT velocity
                 #linear_vel, angular_vel : vehicle TARGETED velocities 
-
                                                                 
+            # You should only publish the control commands if dbw is enabled
             if self.dbw_enabled: # publish results or goes back to manual driving otherwise
                 self.publish(throttle, brake, steer)
 

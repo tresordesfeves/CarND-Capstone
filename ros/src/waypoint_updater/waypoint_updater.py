@@ -6,6 +6,7 @@ from styx_msgs.msg import Lane, Waypoint
 from scipy.spatial import KDTree
 
 import math
+import numpy as np
 
 '''
 This node will publish waypoints from the car's current position to some `x` distance ahead.
@@ -40,7 +41,7 @@ class WaypointUpdater(object):
         # TODO: Add other member variables you need below
 
         #initializing all variable to enable first conditional excution
-        self.Pose = None
+        self.pose = None
         self.base_waypoints = None
         self.waypoints_2d = None
 
@@ -56,7 +57,7 @@ class WaypointUpdater(object):
                 self.publish_waypoints(closest_waypoints_idx)
             rate.sleep()
 
-    def get_closest_waypointsidx(self):
+    def get_closest_waypoints_idx(self):
         x=self.pose.pose.position.x
         y=self.pose.pose.position.y
 
@@ -73,7 +74,7 @@ class WaypointUpdater(object):
 
         if check_dotprod > 0:
             # vehicle is ahead of the closest waypoint: chose the next waypoint to start the sequence of waypoints ahead of the vehicle
-            closest_idx= (closest_idx+1) % (len(waypoints_2d))      
+            closest_idx= (closest_idx+1) % (len(self.waypoints_2d))      
 
         return closest_idx
 
@@ -123,6 +124,7 @@ if __name__ == '__main__':
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')
+
 
 
 
