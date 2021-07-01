@@ -4,7 +4,7 @@ import rospy
 from geometry_msgs.msg import PoseStamped
 from styx_msgs.msg import Lane, Waypoint
 from scipy.spatial import KDTree
-
+import numpy as np
 import math
 
 '''
@@ -40,7 +40,7 @@ class WaypointUpdater(object):
         # TODO: Add other member variables you need below
 
         #initializing all variable to enable first conditional excution
-        self.Pose = None
+        self.pose = None
         self.base_waypoints = None
         self.waypoints_2d = None
 
@@ -62,7 +62,7 @@ class WaypointUpdater(object):
 
         # querry the KDTree with the vehicle current position to find the closest waypoint index
         closest_idx=self.waypoint_tree.query([x,y],1)[1] # ,1 : the closest one, [1], the index in waypoints_2d list
-
+        print("closest_idx" , closest_idx)
         closest_coord=self.waypoints_2d[closest_idx] # coordinates of the closest waypoint 
         prev_coord=self.waypoints_2d[closest_idx-1] # coordinates of the previous point in the waypoints sequence       
 
@@ -73,7 +73,7 @@ class WaypointUpdater(object):
 
         if check_dotprod > 0:
             # vehicle is ahead of the closest waypoint: chose the next waypoint to start the sequence of waypoints ahead of the vehicle
-            closest_idx= (closest_idx+1) % (len(waypoints_2d))      
+            closest_idx= (closest_idx+1) % (len(self.waypoints_2d))      
 
         return closest_idx
 
@@ -93,7 +93,7 @@ class WaypointUpdater(object):
         if not self.waypoints_2d:
             self.waypoints_2d=[[waypoint.pose.pose.position.x,waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
             self.waypoint_tree= KDTree(self.waypoints_2d)
-        pass
+      
 
     def traffic_cb(self, msg):
         # TODO: Callback for /traffic_waypoint message. Implement
@@ -123,6 +123,8 @@ if __name__ == '__main__':
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')
+
+
 
 
 
