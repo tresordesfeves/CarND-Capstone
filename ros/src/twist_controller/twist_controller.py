@@ -39,13 +39,17 @@ class Controller(object):
     	self.accel_limit = accel_limit
     	self.wheel_radius = wheel_radius
 
-    	self.last_time =rospy.get_time(  )
+    	self.last_time =rospy.get_time()
 
 
         # TODO: Implement
         pass
 
-    def control(self, current_vel, dbw_enabled, linear_velocity, angular_velocity):
+
+
+        
+
+    def control(self, current_velocity, dbw_enabled, linear_velocity, angular_velocity):
         # TODO: Change the arg, kwarg list to suit your needs
         # Return throttle, brake, steer
 
@@ -53,14 +57,14 @@ class Controller(object):
         	self.throttle_controller.reset() # disconnect the throttle PID controller and reset to zero the accumulated (intgral) error
         	return 0,0,0 # switch back to manual driving
 
-        current_velocity=self.vel_lpf.filt(current_vel) # HF noise clean up
+        current_vel=self.vel_lpf.filt(current_velocity) # HF noise clean up
 
 
-        steering=self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_velocity)
+        steering=self.yaw_controller.get_steering(linear_velocity, angular_velocity, current_vel)
 
        	# getting all the parameters ready for the throttle PID controller
-       	vel_error= linear_velocity - current_velocity
-       	self.last_vel= current_velocity
+       	vel_error= linear_velocity - current_vel
+       	self.last_vel= current_vel
        	current_time = rospy.get_time()
        	sample_time = current_time - self.last_time
        	self.last_time = current_time
@@ -68,7 +72,7 @@ class Controller(object):
        	throttle=self.throttle_controller.step(vel_error,sample_time) # get the throttle value from the PID throttle controller
        	brake=0
 
-       	if linear_velocity==0 and current_velocity <0.1 :#idling at a stop sign or at a red light: automatic transmission , brake to immobilized vehicle
+       	if linear_velocity==0 and current_vel <0.1 :#idling at a stop sign or at a red light: automatic transmission , brake to immobilized vehicle
        		throttle=0
        		brake= 400 # immobilization torque 
        	

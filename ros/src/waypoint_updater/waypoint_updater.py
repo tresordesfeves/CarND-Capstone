@@ -22,7 +22,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 200 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
 
 
 class WaypointUpdater(object):
@@ -62,7 +62,6 @@ class WaypointUpdater(object):
 
         # querry the KDTree with the vehicle current position to find the closest waypoint index
         closest_idx=self.waypoint_tree.query([x,y],1)[1] # ,1 : the closest one, [1], the index in waypoints_2d list
-        print("closest_idx" , closest_idx)
         closest_coord=self.waypoints_2d[closest_idx] # coordinates of the closest waypoint 
         prev_coord=self.waypoints_2d[closest_idx-1] # coordinates of the previous point in the waypoints sequence       
 
