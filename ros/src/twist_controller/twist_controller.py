@@ -91,7 +91,7 @@ class Controller(object):
        		brake = decel* self.vehicle_mass* self.wheel_radius # torque formula 
 
        	#debug
-       	# rospy.logwarn("Throttle: " + str(throttle) + ", Steer: " + str(steering)+ ", Brake: " + str(brake) )
+       	#rospy.logwarn("Throttle: " + str(throttle) + ", Steer: " + str(steering)+ ", Brake: " + str(brake) )
 
 
 

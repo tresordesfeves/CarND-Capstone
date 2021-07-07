@@ -50,6 +50,8 @@ class TLDetector(object):
         self.last_state = TrafficLight.UNKNOWN
         self.last_wp = -1
         self.state_count = 0
+        self.waypoints_2d = None
+
 
         rospy.spin()
 
@@ -62,7 +64,7 @@ class TLDetector(object):
         if not self.waypoints_2d:       
             self.waypoints_2d=[[waypoint.pose.pose.position.x,waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]       
             self.waypoint_tree= KDTree(self.waypoints_2d)       
-              
+
 
 
     def traffic_cb(self, msg):
@@ -83,6 +85,11 @@ class TLDetector(object):
 
 
         light_wp, state = self.process_traffic_lights()
+
+
+        #debug
+        rospy.logwarn("light_wp: " + str(light_wp) + ", State: " + str(state) )
+
 
         #light_wp: the index of the closest waypoint to the traffic light stop line  ( a line marking on US roadways (in the USA the light is located behing the crossing))
         #light_wp : index within the entire waypoint list ( list is passed in "waypoints_cb")
@@ -141,7 +148,7 @@ class TLDetector(object):
         
         return light.state # not using the classifier but the results from lights come in from the simulator with the state already attached 
 
-        
+
     def process_traffic_lights(self):
         """Finds closest visible traffic light, if one exists, and determines its
             location and color
@@ -154,6 +161,7 @@ class TLDetector(object):
 
         closest_light_ahead = None  # the index of the neighbor waypoint to the closest light ahead of the vehicle 
         stop_line_wp_idx = None     # index of the neighbor waypoint to the the closest traffic light ahead
+         
 
 
         # List of positions that correspond to the line to stop in front of for a given intersection
@@ -161,36 +169,33 @@ class TLDetector(object):
         
         if(self.pose): 
 
-            car_pose = (self.pose.pose.x, self.pose.pose.y)
+            car_pose = (self.pose.pose.position.x, self.pose.pose.position.y)
             car_wp_idx = self.get_closest_waypoint(car_pose) #  index of the neighbor waypoint to the vehicle
+
+            #rospy.logwarn("car_wp_idx: " + str(car_wp_idx) )
 
 
              # find the closest visible traffic light (if one exists)
 
-             distance_in_waypoints= len(self.waypoints.waypoints) # number of waypoints separating 2 locations # initialized to the maximum value : total number of waypoints
+            distance_in_waypoints= len(self.base_waypoints.waypoints) # number of waypoints separating 2 locations # initialized to the maximum value : total number of waypoints
 
-             for i, stop_line in enumerate ( stop_line_positions ): # going through the stop lines one by one to find the closest stop_line ahead of the car 
-                stop_line_pose = (stop_line[0],stop_line[1])
-                stop_line_wp_idx=self.get_closest_waypoint(stop_line_pose)
-
-                candidate_distance=stop_line_wp_idx - car_wp_idx # distance (number of waypoints) between the car and the stop line closest waypoints
-
-                if candidate_distance >0 : # light to consider because the corresponding  stop line is ahead of the car 
-
-                #   on a side note:  a car will rightfully ignore a light once it  passes its corresponding stop line ( car already in the middle of the crossing)
-
-                    distance_in_waypoints=min( distance_in_waypoint, candidate_distance)
-                    
-                    closest_light_ahead= lights[i] # so far the best candidate
+            for i, stop_line in enumerate ( stop_line_positions ): # going through the stop lines one by one to find the closest stop_line ahead of the car 
+               stop_line_pose = (stop_line[0],stop_line[1])
+               stop_line_wp_idx=self.get_closest_waypoint(stop_line_pose)
+               candidate_distance=stop_line_wp_idx - car_wp_idx # distance (number of waypoints) between the car and the stop line closest waypoints
+               if candidate_distance >0 : # light to consider because the corresponding  stop line is ahead of the car 
+               #   on a side note:  a car will rightfully ignore a light once it  passes its corresponding stop line ( car already in the middle of the crossing)
+                   distance_in_waypoints=min( distance_in_waypoints, candidate_distance)
+                   
+                   closest_light_ahead= self.lights[i] # so far the best candidate
 
 
         if closest_light_ahead: # the closest light for which the stop line is ahead of the car was found 
 
-            state = self.get_light_state( closest_light_ahead)
+            state = self.get_light_state(closest_light_ahead)
 
             return stop_line_wp_idx, state # "location" (ie index) an state (Red, Orange, Greem ) : noise from classification and controls are addressed in other nodes 
 
-        #self.waypoints = None
         return -1, TrafficLight.UNKNOWN # detection failed or no visible light
 
 
