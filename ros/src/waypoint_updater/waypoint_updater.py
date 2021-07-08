@@ -52,11 +52,10 @@ class WaypointUpdater(object):
         while not rospy.is_shutdown():
             if self.pose and self.base_waypoints:
                 # find the waypoints closest to the car's current positiom
-                closest_waypoints_idx=self.get_closest_waypoints_idx()
                 self.publish_waypoints(closest_waypoints_idx)
             rate.sleep()
 
-    def get_closest_waypoints_idx(self):
+    def get_closest_waypoint_idx(self):
         x=self.pose.pose.position.x
         y=self.pose.pose.position.y
 
@@ -76,11 +75,31 @@ class WaypointUpdater(object):
 
         return closest_idx
 
-    def publish_waypoints(self,closest_idx):
+    def publish_waypoints(self):
+
+        speed_active_lane=generate_lane() # a range of speed reactive (to red traffic lights) waypoints, ahead of the car
+
+        self.final_waypoints_pub.publish(speed_active_lane) 
+
+    def generate_lane(self): # edit the speed of a range of waypoints ahead of the car to stop at a qualifying red light stop line 
         lane=Lane()
-        lane.header=self.base_waypoints.header # reusing the header from msa type  "Lane" also used for base_waypoint 
-        lane.waypoints=self.base_waypoints.waypoints[closest_idx:closest_idx+LOOKAHEAD_WPS]
-        self.final_waypoints_pub.publish(lane)
+
+        closest_waypoint_idx=self.get_closest_waypoint_idx()# closest waypoint ahead of the vehicle
+        farthest_waypoint_idx=closest_waypoint_idx + LOOKAHEAD_WPS # last waypoint of the lookup range ahead of the vehicle 
+        
+        base_waypoints= self.base_lane.waypoints[closest_waypoint_idx:farthest_waypoint_idx] #  range of waypoint in front of the car 
+
+        # the position of each points in base_waypoints is not to be modified !!!
+        # only the velocity attached to each point needs to be modify to control the car speed when aprroaching a red-light stop-line
+
+        if (self.stopline_wp_idx ==-1) or (self.stopline_wp_idx>=farthest_waypoint_idx):# unknow traffic line status or light is too far out
+            lane.waypoints= base_waypoints  # keep the original speed associated with each waypoints
+        else :
+            lane.waypoints = self.decelerate_waypoints(base_waypoints,closest_idx)  # base_waypoints location unaltered,
+                                                                                    # but each base_waypoint velocity is slowed down toward a complete stop at the red-light stop-line 
+        lane.header=self.base_lane.header # recycling the header 
+
+        return lane
 
     def pose_cb(self, msg):
         self.pose=msg
@@ -88,7 +107,7 @@ class WaypointUpdater(object):
 
     def waypoints_cb(self, waypoints):
 
-        self.base_waypoints=waypoints
+        self.base_lane=waypoints # all the existing waypoints
         if not self.waypoints_2d:
             self.waypoints_2d=[[waypoint.pose.pose.position.x,waypoint.pose.pose.position.y] for waypoint in waypoints.waypoints]
             self.waypoint_tree= KDTree(self.waypoints_2d)
