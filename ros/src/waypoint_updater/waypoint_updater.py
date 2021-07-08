@@ -107,20 +107,20 @@ class WaypointUpdater(object):
 
     def decelerate_waypoints(self, waypoints, closest_waypoints_idx): # calculate the speed of each waypoint from the car to the stop-line
 
-        decelerated_lane=[] # same "waypoints" list but each pont speed recalculated 
 
-        WP_car_to_stopline= max(self.stopline_wp_idx - (closest_waypoints_idx -2), 0)   # number of waypoints from the car to the stopline (-2= car 1/2 length) 
+        WP_car_to_stopline= max(self.stopline_wp_idx - (closest_waypoints_idx -2), 0)   # number of waypoints from the car to the stop-line (-2 for car's 1/2 length) 
 
         waypoints_controlled = waypoints
 
         for i, wp in enumerate(waypoints_controlled):
-            distance_wp_to_stopline=self.distance(waypoints, i, WP_car_to_stopline)
+            distance_wp_to_stopline=self.distance(waypoints, i, WP_car_to_stopline) # culmulative distance between each waypoints from waypoints[i] to waypoint[WP_car_to_stopline]
+                                                                                    # or 0 when i >WP_car_to_stopline  (meaning all the points beyound stop-line )
             velocity= math.sqrt(2*MAX_DECEL*distance_wp_to_stopline)
 
             if velocity < 1 :
                 velocity=0 # stop 
             
-            wp.twist.twist.linear.x min(velocity, wp.twist.twist.linear.x)
+            wp.twist.twist.linear.x = min(velocity, wp.twist.twist.linear.x)
 
         return waypoints_controlled
 
@@ -159,11 +159,15 @@ class WaypointUpdater(object):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
     def distance(self, waypoints, wp1, wp2):# wp1,wp2 are waypoints indexes, not waypoints per se
+
+                                            # return the culmulative distance between each waypoints from wp1 to wp2
+                                            # !!! return 0 when wp1>wp2
         dist = 0
         dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
         for i in range(wp1, wp2+1):
+            # sum of all the segments length from between 2 waypoints 
             dist += dl(waypoints[wp1].pose.pose.position, waypoints[i].pose.pose.position)
-            wp1 = i
+            wp1 = i 
         return dist
 
 
