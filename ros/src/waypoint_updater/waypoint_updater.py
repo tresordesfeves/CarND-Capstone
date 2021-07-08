@@ -24,6 +24,8 @@ TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 
 LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
 
+#MAX_DECEL = rospy.get_param('~decel_limit', -5)
+MAX_DECEL = 0.5
 
 class WaypointUpdater(object):
     def __init__(self):
@@ -33,7 +35,7 @@ class WaypointUpdater(object):
         rospy.Subscriber('/base_waypoints', Lane, self.waypoints_cb)
 
         # TODO: Add a subscriber for /traffic_waypoint and /obstacle_waypoint below
-
+        rospy.Subscriber('/traffic_waypoint',Int32,self.traffic_cb)
 
         self.final_waypoints_pub = rospy.Publisher('/final_waypoints', Lane, queue_size=1)
 
@@ -46,6 +48,7 @@ class WaypointUpdater(object):
 
 
         self.loop()
+
 
     def loop(self):
         rate =rospy.Rate(50)
@@ -95,11 +98,35 @@ class WaypointUpdater(object):
         if (self.stopline_wp_idx ==-1) or (self.stopline_wp_idx>=farthest_waypoint_idx):# unknow traffic line status or light is too far out
             lane.waypoints= base_waypoints  # keep the original speed associated with each waypoints
         else :
-            lane.waypoints = self.decelerate_waypoints(base_waypoints,closest_idx)  # base_waypoints location unaltered,
+            lane.waypoints = self.decelerate_waypoints(base_waypoints,closest_waypoints_idx)  # base_waypoints location unaltered,
                                                                                     # but each base_waypoint velocity is slowed down toward a complete stop at the red-light stop-line 
         lane.header=self.base_lane.header # recycling the header 
 
         return lane
+
+
+    def decelerate_waypoints(self, waypoints, closest_waypoints_idx): # calculate the speed of each waypoint from the car to the stop-line
+
+        decelerated_lane=[] # same "waypoints" list but each pont speed recalculated 
+
+        WP_car_to_stopline= max(self.stopline_wp_idx - (closest_waypoints_idx -2), 0)   # number of waypoints from the car to the stopline (-2= car 1/2 length) 
+
+        waypoints_controlled = waypoints
+
+        for i, wp in enumerate(waypoints_controlled):
+            distance_wp_to_stopline=self.distance(waypoints, i, WP_car_to_stopline)
+            velocity= math.sqrt(2*MAX_DECEL*distance_wp_to_stopline)
+
+            if velocity < 1 :
+                velocity=0 # stop 
+            
+            wp.twist.twist.linear.x min(velocity, wp.twist.twist.linear.x)
+
+        return waypoints_controlled
+
+
+
+
 
     def pose_cb(self, msg):
         self.pose=msg
@@ -114,7 +141,11 @@ class WaypointUpdater(object):
       
 
     def traffic_cb(self, msg):
-        # TODO: Callback for /traffic_waypoint message. Implement
+        # Callback for /traffic_waypoint message. 
+        self.stopline_wp_idx= msg.data
+
+
+
         pass
 
     def obstacle_cb(self, msg):
@@ -127,7 +158,7 @@ class WaypointUpdater(object):
     def set_waypoint_velocity(self, waypoints, waypoint, velocity):
         waypoints[waypoint].twist.twist.linear.x = velocity
 
-    def distance(self, waypoints, wp1, wp2):
+    def distance(self, waypoints, wp1, wp2):# wp1,wp2 are waypoints indexes, not waypoints per se
         dist = 0
         dl = lambda a, b: math.sqrt((a.x-b.x)**2 + (a.y-b.y)**2  + (a.z-b.z)**2)
         for i in range(wp1, wp2+1):
