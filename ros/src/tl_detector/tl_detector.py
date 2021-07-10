@@ -88,7 +88,9 @@ class TLDetector(object):
 
 
         #debug
-        rospy.logwarn("light_wp: " + str(light_wp) + ", State: " + str(state) )
+        #if state == 0:
+            #rospy.logwarn("--------------> light_wp: " + str(light_wp) + ", RED : " + str(state) )
+
 
 
         #light_wp: the index of the closest waypoint to the traffic light stop line  ( a line marking on US roadways (in the USA the light is located behing the crossing))
@@ -108,8 +110,13 @@ class TLDetector(object):
             light_wp = light_wp if state == TrafficLight.RED else -1
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
+            if self.state == 0:
+                rospy.logwarn("1 light_wp: " + str(light_wp) + ", RED : " + str(state) )
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
+            if self.state == 0:
+                rospy.logwarn(" 2   light_wp: " + str(light_wp) + ", RED : " + str(state) )
+
         self.state_count += 1
 
     
@@ -181,21 +188,32 @@ class TLDetector(object):
 
             for i, stop_line in enumerate ( stop_line_positions ): # going through the stop lines one by one to find the closest stop_line ahead of the car 
                stop_line_pose = (stop_line[0],stop_line[1])
+
                stop_line_wp_idx=self.get_closest_waypoint(stop_line_pose)
                candidate_distance=stop_line_wp_idx - car_wp_idx # distance (number of waypoints) between the car and the stop line closest waypoints
-               if candidate_distance >0 : # light to consider because the corresponding  stop line is ahead of the car 
+               
+               if candidate_distance >0 :
+                # light to consider because the corresponding  stop line is ahead of the car 
                #   on a side note:  a car will rightfully ignore a light once it  passes its corresponding stop line ( car already in the middle of the crossing)
-                   distance_in_waypoints=min( distance_in_waypoints, candidate_distance)
+                    if candidate_distance < distance_in_waypoints :
+
+                        distance_in_waypoints = candidate_distance
                    
-                   closest_light_ahead= self.lights[i] # so far the best candidate
+                        closest_light_ahead= self.lights[i] # so far the best candidate
+#####
+                        closest_stop_line_idx=stop_line_wp_idx
+                    
+                        rospy.logwarn("*************************  car_wp_idx: " + str(closest_stop_line_idx) )
+
+#####
 
 
         if closest_light_ahead: # the closest light for which the stop line is ahead of the car was found 
 
             state = self.get_light_state(closest_light_ahead)
-
-            return stop_line_wp_idx, state # "location" (ie index) an state (Red, Orange, Greem ) : noise from classification and controls are addressed in other nodes 
-
+#####
+            return closest_stop_line_idx, state # "location" (ie index) an state (Red, Orange, Greem ) : noise from classification and controls are addressed in other nodes 
+####
         return -1, TrafficLight.UNKNOWN # detection failed or no visible light
 
 
