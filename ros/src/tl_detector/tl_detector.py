@@ -105,17 +105,30 @@ class TLDetector(object):
         if self.state != state:
             self.state_count = 0
             self.state = state
+            rospy.logwarn("new state,  " + str(state) )
+
         elif self.state_count >= STATE_COUNT_THRESHOLD:
             self.last_state = self.state
             light_wp = light_wp if state == TrafficLight.RED else -1
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
-            if self.state == 0:
-                rospy.logwarn("1 light_wp: " + str(light_wp) + ", RED : " + str(state) )
+            if state==0:
+                rospy.logwarn("Publish RED :" + str(state) )
+            else : 
+
+                if state ==2 :
+                    rospy.logwarn("Publish Green :" + str(state) )
+                else :                        
+                    rospy.logwarn("Publish Yellow :" + str(state) )
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
-            if self.state == 0:
-                rospy.logwarn(" 2   light_wp: " + str(light_wp) + ", RED : " + str(state) )
+            if state == 2 :
+                rospy.logwarn("Green not published yet :" + str(state) + " from : "+ str(self.last_state) )
+            elif state == 1 :
+                rospy.logwarn("Yellow not published yet :" + str(state) + " from : "+ str(self.last_state) )
+            else : 
+                rospy.logwarn("Red  not published yet :" + str(state) + " from : "+ str(self.last_state) )
+
 
         self.state_count += 1
 
@@ -203,7 +216,7 @@ class TLDetector(object):
 #####
                         closest_stop_line_idx=stop_line_wp_idx
                     
-                        rospy.logwarn("*************************  car_wp_idx: " + str(closest_stop_line_idx) )
+                        #rospy.logwarn("*************************  car_wp_idx: " + str(closest_stop_line_idx) )
 
 #####
 
@@ -212,7 +225,7 @@ class TLDetector(object):
 
             state = self.get_light_state(closest_light_ahead)
 #####
-            return closest_stop_line_idx, state # "location" (ie index) an state (Red, Orange, Greem ) : noise from classification and controls are addressed in other nodes 
+            return closest_stop_line_idx, state # "location" (ie index) an state (Red, Orange, Green ) : noise from classification and controls are addressed in other nodes 
 ####
         return -1, TrafficLight.UNKNOWN # detection failed or no visible light
 

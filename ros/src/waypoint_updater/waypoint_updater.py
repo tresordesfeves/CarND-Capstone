@@ -149,7 +149,7 @@ class WaypointUpdater(object):
     def traffic_cb(self, msg):
         # Callback for /traffic_waypoint message. 
         self.stopline_wp_idx = msg.data
-        rospy.logwarn("------------------>stopline_wp_idx: " + str(self.stopline_wp_idx) )
+        #rospy.logwarn("------------------>stopline_wp_idx: " + str(self.stopline_wp_idx) )
 
 
     def obstacle_cb(self, msg):
