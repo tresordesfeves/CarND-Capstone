@@ -102,9 +102,14 @@ class WaypointUpdater(object):
 
         if (self.stopline_wp_idx ==-1) or (self.stopline_wp_idx>=farthest_waypoint_idx):# unknow traffic line status or light is too far out
             lane.waypoints= base_waypoints  # keep the original speed associated with each waypoints
+            #rospy.logwarn("------------------>keep going  " + str(self.stopline_wp_idx) )
+            rospy.logwarn("no change,  stopline_wp_idx   : " + str(self.stopline_wp_idx) + " farthest  : " +str(farthest_waypoint_idx))
+
+
         else :
             lane.waypoints= base_waypoints 
             #lane.waypoints = self.decelerate_waypoints(base_waypoints,closest_waypoints_idx)  # base_waypoints location unaltered,
+            rospy.logwarn("-------------DECELERATE   " + str(self.stopline_wp_idx) )
                                                                                     # but each base_waypoint velocity is slowed down toward a complete stop at the red-light stop-line 
         lane.header=self.base_lane.header # recycling the header 
 
