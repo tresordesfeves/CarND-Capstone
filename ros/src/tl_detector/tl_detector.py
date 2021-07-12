@@ -87,11 +87,6 @@ class TLDetector(object):
         light_wp, state = self.process_traffic_lights()
 
 
-        #debug
-        #if state == 0:
-            #rospy.logwarn("--------------> light_wp: " + str(light_wp) + ", RED : " + str(state) )
-
-
 
         #light_wp: the index of the closest waypoint to the traffic light stop line  ( a line marking on US roadways (in the USA the light is located behing the crossing))
         #light_wp : index within the entire waypoint list ( list is passed in "waypoints_cb")
@@ -105,30 +100,16 @@ class TLDetector(object):
         if self.state != state:
             self.state_count = 0
             self.state = state
-            rospy.logwarn("new state,  " + str(state) )
 
         elif self.state_count >= STATE_COUNT_THRESHOLD:
             self.last_state = self.state
             light_wp = light_wp if state == TrafficLight.RED else -1
             self.last_wp = light_wp
             self.upcoming_red_light_pub.publish(Int32(light_wp))
-            if state==0:
-                rospy.logwarn("Publish RED :" + str(state) )
             else : 
 
-                if state ==2 :
-                    rospy.logwarn("Publish Green :" + str(state) )
-                else :                        
-                    rospy.logwarn("Publish Yellow :" + str(state) )
         else:
             self.upcoming_red_light_pub.publish(Int32(self.last_wp))
-            if state == 2 :
-                rospy.logwarn("Green not published yet :" + str(state) + " from : "+ str(self.last_state) )
-            elif state == 1 :
-                rospy.logwarn("Yellow not published yet :" + str(state) + " from : "+ str(self.last_state) )
-            else : 
-                rospy.logwarn("Red  not published yet :" + str(state) + " from : "+ str(self.last_state) )
-
 
         self.state_count += 1
 
@@ -192,8 +173,6 @@ class TLDetector(object):
             car_pose = (self.pose.pose.position.x, self.pose.pose.position.y)
             car_wp_idx = self.get_closest_waypoint(car_pose) #  index of the neighbor waypoint to the vehicle
 
-            #rospy.logwarn("car_wp_idx: " + str(car_wp_idx) )
-
 
              # find the closest visible traffic light (if one exists)
 
@@ -213,12 +192,9 @@ class TLDetector(object):
                         distance_in_waypoints = candidate_distance
                    
                         closest_light_ahead= self.lights[i] # so far the best candidate
-#####
                         closest_stop_line_idx=stop_line_wp_idx
                     
-                        #rospy.logwarn("*************************  car_wp_idx: " + str(closest_stop_line_idx) )
 
-#####
 
 
         if closest_light_ahead: # the closest light for which the stop line is ahead of the car was found 

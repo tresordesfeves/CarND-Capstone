@@ -103,20 +103,10 @@ class WaypointUpdater(object):
         if (self.stopline_wp_idx ==-1) or (self.stopline_wp_idx>=farthest_waypoint_idx):# unknow traffic line status or light is too far out
             lane.waypoints= base_waypoints  # keep the original speed associated with each waypoints
             
-            #rospy.logwarn("------------------>keep going  " + str(self.stopline_wp_idx) )
-            #if (self.stopline_wp_idx ==-1):
-                #rospy.logwarn("no change : GREEN OR YELLOW : " )
-            #else:    
-                #rospy.logwarn("no change,  stopline > farthest: " + str(self.stopline_wp_idx) + " > " +str(farthest_waypoint_idx))
-
 
         else :
-            #lane.waypoints= base_waypoints 
+            #lane.waypoints= base_waypoints : for testing purposes to bypass function decelerate_waypoints
             lane.waypoints = self.decelerate_waypoints(base_waypoints,closest_waypoint_idx)  # base_waypoints location unaltered,
-            #rospy.logwarn("-------------DECELERATE   " + str(self.stopline_wp_idx) )
-            #rospy.logwarn("-------------DECELERATE   " + str(lane.waypoints) )
-            #rospy.logwarn("-------------B_Wpoints    " + str(base_waypoints) )
-
                                                                                     # but each base_waypoint velocity is slowed down toward a complete stop at the red-light stop-line 
         lane.header=self.base_lane.header # recycling the header 
 
@@ -125,7 +115,6 @@ class WaypointUpdater(object):
 
     def decelerate_waypoints(self, waypoints, closest_waypoint_idx): # calculate the speed of each waypoint from the car to the stop-line
 
-        #rospy.logwarn("-------------DECELERATE from  " + str(closest_waypoint_idx)+" to "+ str(self.stopline_wp_idx) )
         waypoints_controlled=[]
         WP_car_to_stopline= max(self.stopline_wp_idx - closest_waypoint_idx -2, 0)   # number of waypoints from the car to the stop-line (-2 for car's 1/2 length) 
 
@@ -166,8 +155,6 @@ class WaypointUpdater(object):
     def traffic_cb(self, msg):
         # Callback for /traffic_waypoint message. 
         self.stopline_wp_idx = msg.data
-        #rospy.logwarn("------------------>stopline_wp_idx: " + str(self.stopline_wp_idx) )
-
 
     def obstacle_cb(self, msg):
         # TODO: Callback for /obstacle_waypoint message. We will implement it later
