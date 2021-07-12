@@ -232,7 +232,7 @@ class WaypointUpdater(object):
 
         rospy.logwarn("-------------DECELERATE from  " + str(closest_waypoint_idx)+" to "+ str(self.stopline_wp_idx) )
 
-        WP_car_to_stopline= max(self.stopline_wp_idx - (closest_waypoint_idx -2), 0)   # number of waypoints from the car to the stop-line (-2 for car's 1/2 length) 
+        WP_car_to_stopline= max(self.stopline_wp_idx - closest_waypoint_idx -2, 0)   # number of waypoints from the car to the stop-line (-2 for car's 1/2 length) 
 
         waypoints_controlled = waypoints
 
