@@ -86,7 +86,6 @@ class WaypointUpdater(object):
     def publish_waypoints(self):
 
         speed_active_lane=self.generate_lane() # a range of speed reactive (to red traffic lights) waypoints, ahead of the car
-
         self.final_waypoints_pub.publish(speed_active_lane) 
 
     def generate_lane(self): # edit the speed of a range of waypoints ahead of the car to stop at a qualifying red light stop line 
@@ -131,7 +130,6 @@ class WaypointUpdater(object):
         # build up the each waypoint: 
             p.pose=wp.pose # same pose (location and orientation) then the native waypoints               
             p.twist.twist.linear.x = min(velocity, wp.twist.twist.linear.x) # decreasing speed driving toward the stop-line, zero beyond it. 
-          
             waypoints_controlled.append(p)
 
         return waypoints_controlled
@@ -184,6 +182,7 @@ if __name__ == '__main__':
         WaypointUpdater()
     except rospy.ROSInterruptException:
         rospy.logerr('Could not start waypoint updater node.')
+
 
 
 
