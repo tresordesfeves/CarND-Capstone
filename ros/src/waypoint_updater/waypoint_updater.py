@@ -23,7 +23,7 @@ as well as to verify your TL classifier.
 TODO (for Yousuf and Aaron): Stopline location for each traffic light.
 '''
 
-LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. You can change this number
+LOOKAHEAD_WPS = 50 # Number of waypoints we will publish. Note that traffic lights beyound this range will be ignored
 
 #MAX_DECEL = rospy.get_param('~decel_limit', -5)
 MAX_DECEL = 0.5

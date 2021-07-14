@@ -13,7 +13,7 @@ import tf
 import cv2
 import yaml
 
-STATE_COUNT_THRESHOLD = 3
+STATE_COUNT_THRESHOLD = 3 # minimum number of consecutive identical state necessary for state change to be ackonowledged
 
 class TLDetector(object):
     def __init__(self):
